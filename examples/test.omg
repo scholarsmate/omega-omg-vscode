@@ -1,0 +1,31 @@
+# Test OMG file to verify syntax highlighting
+
+version 1.0
+
+# Test all import flags
+import "basic.txt" as basic
+import "prefixed.txt" as prefixed with word-prefix  
+import "suffixed.txt" as suffixed with word-suffix
+import "bounded.txt" as bounded with word-boundary
+import "multi.txt" as multi with word-prefix, word-suffix, word-boundary
+import "flags.txt" as flags with ignore-case, ignore-punctuation, elide-whitespace
+
+# Test resolver
+resolver default uses entity_resolver with ignore-case
+
+# Test rule definitions
+simple_rule = "hello world"
+list_rule = [[names]]
+complex_rule = ^([[prefixes]] [[names]] [[suffixes]])|([[names]])$
+
+# Test patterns
+quantified = [[names]]{2,5}
+optional = [[names]]?
+grouped = ([[names]] " " [[names]])
+named_capture = (?P<person>[[names]])
+filtered = [[names:startswith("A")]]
+
+# Test character classes and escapes
+digits = \d+
+letters = [a-zA-Z]+
+special = [!@#$%]

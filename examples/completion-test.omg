@@ -1,0 +1,43 @@
+# OMG Code Completion Test File
+# Try typing the following to test code completion:
+
+version 1.0
+
+# Test 1: Import flag completion
+# Type "import "test.txt" as test with " and press Ctrl+Space
+import "names.txt" as names with word-prefix, word-suffix
+import "locations.txt" as places with 
+
+# Test 2: Keyword completion  
+# Type at the beginning of a line and press Ctrl+Space
+
+
+# Test 3: Escape sequence completion
+# Type a backslash "\" and press Ctrl+Space
+pattern_with_digits = \d+ " " \w+
+
+# Test 4: Rule reference completion
+# Type "[[" and press Ctrl+Space (should show defined rules)
+names = "Alice" | "Bob" | "Charlie"
+places = "New York" | "London" | "Tokyo"
+
+person_location = [[names]] " lives in " [[
+
+# Test 5: Pattern snippets
+# Type "new_rule = " and press Ctrl+Space
+new_rule = 
+
+# Test 6: Resolver flag completion
+# Type "resolver default uses method with " and press Ctrl+Space
+resolver default uses entity_resolver with 
+
+# Test 7: Character class and quantifiers
+# Various patterns to test
+email = [a-zA-Z0-9._-]+ "@" [a-zA-Z0-9.-]+ "." [a-zA-Z]{2,4}
+phone = (\d{3})? ?-? ?\d{3}-?\d{4}
+optional_pattern = [[names]]?
+multiple_pattern = [[names]]{2,5}
+
+# Test 8: Named captures and anchors
+full_name = (?P<first>[[names]]) " " (?P<last>[[names]])
+line_pattern = ^[[names]]$

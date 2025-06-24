@@ -1,0 +1,113 @@
+name: Publish to Marketplace
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
+      publish_immediately:
+        description: 'Publish immediately after building'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies (skip scripts)
+      run: npm ci --ignore-scripts
+      
+    - name: Run full test suite with XVFB
+      uses: GabrielBB/xvfb-action@v1
+      with:
+        run: |
+          npm run lint
+          npm test
+          npm run compile
+        options: "-screen 0 1024x768x24"
+        
+    - name: Bump version
+      id: version
+      run: |
+        NEW_VERSION=$(npm version ${{ github.event.inputs.version_bump }} --no-git-tag-version)
+        echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+        echo "version_number=${NEW_VERSION#v}" >> $GITHUB_OUTPUT
+      
+    - name: Update CHANGELOG
+      run: |
+        DATE=$(date +"%Y-%m-%d")
+        sed -i "s/## \[Unreleased\]/## [Unreleased]\n\n## [${{ steps.version.outputs.version_number }}] - ${DATE}/" CHANGELOG.md
+        
+    - name: Package extension with XVFB
+      uses: GabrielBB/xvfb-action@v1
+      with:
+        run: npm run vsix
+        options: "-screen 0 1024x768x24"
+      
+    - name: Get package filename
+      id: package
+      run: |
+        echo "filename=$(ls *.vsix)" >> $GITHUB_OUTPUT
+        
+    - name: Commit version bump
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add package.json CHANGELOG.md
+        git commit -m "Bump version to ${{ steps.version.outputs.new_version }}"
+        git tag ${{ steps.version.outputs.new_version }}
+        
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        tags: true
+        
+    - name: Publish to VS Code Marketplace
+      if: github.event.inputs.publish_immediately == 'true'
+      uses: lannonbr/vsce-action@4.0.0
+      with:
+        args: "publish --packagePath ${{ steps.package.outputs.filename }}"
+      env:
+        VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        
+    - name: Upload artifact for manual review
+      if: github.event.inputs.publish_immediately == 'false'
+      uses: actions/upload-artifact@v4
+      with:
+        name: extension-package-${{ steps.version.outputs.version_number }}
+        path: ${{ steps.package.outputs.filename }}
+        retention-days: 30
+        
+    - name: Create summary
+      run: |
+        echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **New Version:** ${{ steps.version.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Package:** ${{ steps.package.outputs.filename }}" >> $GITHUB_STEP_SUMMARY
+        if [[ "${{ github.event.inputs.publish_immediately }}" == "true" ]]; then
+          echo "- **Status:** Published to VS Code Marketplace ✅" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- **Status:** Package ready for manual review 📦" >> $GITHUB_STEP_SUMMARY
+          echo "- **Next Steps:** Download artifact and run \`npx vsce publish --packagePath ${{ steps.package.outputs.filename }}\`" >> $GITHUB_STEP_SUMMARY
+        fi

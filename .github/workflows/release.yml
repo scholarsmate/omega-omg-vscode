@@ -1,0 +1,125 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        type: string
+      publish_marketplace:
+        description: 'Publish to VS Code Marketplace'
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies (skip scripts)
+      run: npm ci --ignore-scripts
+      
+    - name: Run full test suite with XVFB
+      uses: GabrielBB/xvfb-action@v1
+      with:
+        run: |
+          npm run lint
+          npm test
+          npm run compile
+        options: "-screen 0 1024x768x24"
+    
+    - name: Extract version from tag
+      id: get_version
+      run: |
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Verify package.json version matches tag
+      if: github.event_name == 'push' && github.ref_type == 'tag'
+      run: |
+        TAG_VERSION="${{ steps.get_version.outputs.version }}"
+        PACKAGE_VERSION=$(node -p "require('./package.json').version")
+        echo "Tag version: $TAG_VERSION"
+        echo "Package version: $PACKAGE_VERSION"
+        if [[ "$TAG_VERSION" != "$PACKAGE_VERSION" ]]; then
+          echo "❌ Error: Tag version ($TAG_VERSION) does not match package.json version ($PACKAGE_VERSION)"
+          echo "Please update package.json version to match the tag or create a new tag that matches package.json"
+          exit 1
+        fi
+        echo "✅ Version synchronization verified"
+        
+    - name: Update package.json version
+      if: github.event_name == 'workflow_dispatch'
+      run: |
+        npm version ${{ steps.get_version.outputs.version }} --no-git-tag-version
+        
+    - name: Package extension with XVFB
+      uses: GabrielBB/xvfb-action@v1
+      with:
+        run: npm run vsix
+        options: "-screen 0 1024x768x24"
+      
+    - name: Get package filename
+      id: package
+      run: |
+        echo "filename=$(ls *.vsix)" >> $GITHUB_OUTPUT
+        
+    - name: Create GitHub Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.get_version.outputs.version }}
+        name: Release v${{ steps.get_version.outputs.version }}
+        draft: false
+        prerelease: false
+        files: ${{ steps.package.outputs.filename }}
+        body: |
+          ## Changes in v${{ steps.get_version.outputs.version }}
+          
+          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for detailed changes.
+          
+          ## Installation
+          
+          ### From VS Code Marketplace
+          1. Open VS Code
+          2. Go to Extensions (Ctrl+Shift+X)
+          3. Search for "OMG Language Support"
+          4. Click Install
+          
+          ### Manual Installation
+          1. Download the `.vsix` file below
+          2. Open VS Code
+          3. Run `Extensions: Install from VSIX...` command
+          4. Select the downloaded file
+        
+    - name: Publish to VS Code Marketplace
+      if: |
+        (github.event_name == 'push' && github.ref_type == 'tag') ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_marketplace == 'true')
+      uses: lannonbr/vsce-action@4.0.0
+      with:
+        args: "publish --packagePath ${{ steps.package.outputs.filename }}"
+      env:
+        VSCE_PAT: ${{ secrets.VSCE_PAT }}

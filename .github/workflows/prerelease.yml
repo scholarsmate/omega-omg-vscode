@@ -1,0 +1,109 @@
+name: Pre-release
+
+on:
+  push:
+    branches:
+      - develop
+      - beta
+      - alpha
+  workflow_dispatch:
+    inputs:
+      prerelease_type:
+        description: 'Pre-release type'
+        required: true
+        type: choice
+        options:
+          - alpha
+          - beta
+          - rc
+        default: beta
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  prerelease:
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies (skip scripts)
+      run: npm ci --ignore-scripts
+      
+    - name: Run tests with XVFB
+      uses: GabrielBB/xvfb-action@v1
+      with:
+        run: |
+          npm run lint
+          npm test
+          npm run compile
+        options: "-screen 0 1024x768x24"
+        
+    - name: Determine prerelease type
+      id: prerelease
+      run: |
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          echo "type=${{ github.event.inputs.prerelease_type }}" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.ref }}" == "refs/heads/alpha" ]]; then
+          echo "type=alpha" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.ref }}" == "refs/heads/beta" ]]; then
+          echo "type=beta" >> $GITHUB_OUTPUT
+        else
+          echo "type=beta" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create prerelease version
+      id: version
+      run: |
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        TIMESTAMP=$(date +"%Y%m%d%H%M")
+        NEW_VERSION="${CURRENT_VERSION}-${{ steps.prerelease.outputs.type }}.${TIMESTAMP}"
+        npm version $NEW_VERSION --no-git-tag-version
+        echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+        
+    - name: Package extension with XVFB
+      uses: GabrielBB/xvfb-action@v1
+      with:
+        run: npm run vsix
+        options: "-screen 0 1024x768x24"
+      
+    - name: Get package filename
+      id: package
+      run: |
+        echo "filename=$(ls *.vsix)" >> $GITHUB_OUTPUT
+        
+    - name: Create Pre-release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.version.outputs.version }}
+        name: Pre-release v${{ steps.version.outputs.version }}
+        draft: false
+        prerelease: true
+        files: ${{ steps.package.outputs.filename }}
+        body: |
+          ## Pre-release v${{ steps.version.outputs.version }}
+          
+          This is a pre-release version for testing purposes.
+          
+          **⚠️ Warning:** This version may contain unstable features and should not be used in production.
+          
+          ### Installation
+          1. Download the `.vsix` file below
+          2. Open VS Code
+          3. Run `Extensions: Install from VSIX...` command
+          4. Select the downloaded file
+          
+          ### Branch: `${{ github.ref_name }}`
+          ### Commit: `${{ github.sha }}`

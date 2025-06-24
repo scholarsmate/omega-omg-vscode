@@ -1,0 +1,49 @@
+# Sample OMG file for testing syntax highlighting
+version 1.0
+
+# Import statements with various flags
+import "names.txt" as names
+import "prefixes.txt" as prefixes with word-prefix
+import "suffixes.txt" as suffixes with word-suffix
+import "boundaries.txt" as boundaries with word-boundary
+import "combined.txt" as combined with word-boundary, word-prefix, word-suffix
+import "case_insensitive.txt" as ci_names with ignore-case
+import "punctuation.txt" as punct with ignore-punctuation, elide-whitespace
+
+# Default resolver
+resolver default uses entity_resolver with ignore-case
+
+# Rule definitions
+person = [[names]] " " [[names]]
+prefixed_name = [[prefixes]] [[names]]
+suffixed_name = [[names]] [[suffixes]]
+full_pattern = ^[[prefixes]]? [[names]] [[suffixes]]?$
+
+# Complex patterns with quantifiers and groups
+email_pattern = [a-zA-Z0-9._-]+ "@" [a-zA-Z0-9.-]+ "." [a-zA-Z]{2,4}
+phone_pattern = (\d{3})? ?-? ?\d{3}-?\d{4}
+
+# Named captures and filters
+captured_name = (?P<first>[[names]]) " " (?P<last>[[names]])
+filtered_names = [[names:startswith("A")]]
+
+# Alternation and optional patterns
+name_or_title = ([[names]] | "Mr." | "Ms." | "Dr.")
+optional_middle = [[names]] (" " [[names]])? " " [[names]]
+
+# Quantified expressions
+multiple_names = [[names]]{2,5}
+at_least_one = [[names]]+
+zero_or_more = [[names]]*
+exactly_three = [[names]]{3}
+
+# Character classes and escapes
+digits = \d+
+whitespace = \s*
+word_chars = \w+
+special_chars = [!@#$%^&*]
+
+# Anchors
+line_start = ^[[names]]
+line_end = [[names]]$
+both_anchors = ^[[names]]$

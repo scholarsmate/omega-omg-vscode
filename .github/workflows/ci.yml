@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - name: Install dependencies (skip scripts)
+      run: npm ci --ignore-scripts
+    - name: Run linter, tests, and package with XVFB
+      uses: GabrielBB/xvfb-action@v1
+      with:
+        run: |
+          npm run lint
+          npm test
+          npm run package
+          npm run vsix
+        options: "-screen 0 1024x768x24"
+    - name: Build extension
+      run: npm run compile
+      
+    - name: Upload extension artifact
+      uses: actions/upload-artifact@v4
+      if: matrix.node-version == '20.x'
+      with:
+        name: extension-package
+        path: '*.vsix'
+        retention-days: 7
+
+  windows-test:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run linter
+      run: npm run lint
+      
+    - name: Run tests
+      run: npm test
+      
+    - name: Build extension
+      run: npm run compile

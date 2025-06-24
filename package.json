@@ -1,0 +1,86 @@
+{
+  "name": "omg-language-support",
+  "displayName": "OmegaOMG Language Support",
+  "description": "Syntax highlighting and language support for OmegaOMG (Omega Object Matching Grammar) language",
+  "version": "0.0.1",
+  "publisher": "OmegaDevelopment",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scholarsmate/omega-omg-vscode"
+  },
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "omg",
+        "aliases": [
+          "OMG",
+          "omg",
+          "Object Matching Grammar"
+        ],
+        "extensions": [
+          ".omg"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "omg",
+        "scopeName": "source.omg",
+        "path": "./syntaxes/omg.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test",
+    "build": "npm run compile && npm run vsix",
+    "vsix": "vsce package --allow-missing-repository",
+    "install-local": "node scripts/install-local.js",
+    "version:patch": "npm version patch --no-git-tag-version",
+    "version:minor": "npm version minor --no-git-tag-version",
+    "version:major": "npm version major --no-git-tag-version",
+    "version:set": "npm version --no-git-tag-version",
+    "version:check": "node scripts/version-sync.js check",
+    "version:sync": "node scripts/version-sync.js sync",
+    "version:release": "node scripts/version-sync.js release",
+    "prepublish": "npm run lint && npm test && npm run package",
+    "publish": "vsce publish",
+    "publish:patch": "npm run version:patch && npm run prepublish && vsce publish",
+    "publish:minor": "npm run version:minor && npm run prepublish && vsce publish",
+    "publish:major": "npm run version:major && npm run prepublish && vsce publish",
+    "clean": "node scripts/clean.js",
+    "release": "npm run clean && npm run build && echo 'Release ready! Run npm run publish:patch/minor/major to publish'"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.100.0",
+    "@typescript-eslint/eslint-plugin": "^8.31.1",
+    "@typescript-eslint/parser": "^8.31.1",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^2.32.0",
+    "eslint": "^9.25.1",
+    "rimraf": "^5.0.10",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.8.3",
+    "webpack": "^5.99.7",
+    "webpack-cli": "^6.0.1"
+  }
+}
