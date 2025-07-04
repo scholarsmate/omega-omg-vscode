@@ -84,7 +84,7 @@
             "patterns": [
                 {
                     "name": "constant.language.import-flag.omg",
-                    "match": "\\b(ignore-case|ignore-punctuation|elide-whitespace|word-boundary|word-prefix|word-suffix)\\b"
+                    "match": "\\b(ignore-case|ignore-punctuation|elide-whitespace|word-boundary|word-prefix|word-suffix|line-start|line-end)\\b"
                 }
             ]
         },

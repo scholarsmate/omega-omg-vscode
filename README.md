@@ -427,7 +427,6 @@ If you need to customize the extension behavior, you can modify the standard VS 
 
 ## Known Issues
 
-- **Rule reference completion**: Currently only discovers rules defined in the same file. Cross-file rule references are not yet supported.
 - **Import file validation**: The extension does not validate that imported files exist or contain valid content.
 - **Syntax error detection**: Real-time syntax error detection and reporting is not implemented.
 - **Symbol navigation**: Go-to-definition and find-all-references for rules are not yet available.
@@ -456,6 +455,8 @@ If you encounter bugs or have feature requests, please file an issue with:
 - `word-boundary` - Match at word boundaries
 - `word-prefix` - Match at word prefixes  
 - `word-suffix` - Match at word suffixes
+- `line-start` - Match starts at the start of a line
+- `line-end` - Match ends at the end of a line
 - `ignore-case` - Case-insensitive matching
 - `ignore-punctuation` - Ignore punctuation in matches
 - `elide-whitespace` - Collapse whitespace in matches
