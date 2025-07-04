@@ -54,6 +54,8 @@ export function activate(context: vscode.ExtensionContext) {
 				'word-boundary': 'Matches only at word boundaries (\\b)',
 				'word-prefix': 'Matches at the beginning of words',
 				'word-suffix': 'Matches at the end of words',
+				'line-start': 'Matches start at the start of a line',
+				'line-end': 'Matches end at the end of a line',
 				'ignore-case': 'Case-insensitive matching',
 				'ignore-punctuation': 'Ignores punctuation during matching',
 				'elide-whitespace': 'Removes whitespace before matching'
@@ -118,7 +120,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 
 			// Pattern snippets
-			if (/^\s*[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*$/.test(beforeCursor)) {
+			if (/^\s*[a-zA-Z0-9_]+\s*=\s*$/.test(beforeCursor)) {
 				addPatternSnippets(completions);
 			}
 
@@ -146,6 +148,8 @@ function getImportFlagDocumentation(flag: string): string {
 		'word-boundary': 'Matches only at word boundaries. Equivalent to \\b in regex.',
 		'word-prefix': 'Matches patterns only at the beginning of words.',
 		'word-suffix': 'Matches patterns only at the end of words.',
+		'line-start': 'Matches patterns that start at the start of a line.',
+		'line-end': 'Matches patterns at the end of a line.',
 		'ignore-case': 'Performs case-insensitive pattern matching.',
 		'ignore-punctuation': 'Ignores punctuation characters during matching.',
 		'elide-whitespace': 'Removes whitespace before performing pattern matching.'
@@ -184,7 +188,7 @@ function getResolverFlagDocumentation(flag: string): string {
 	const docs: { [key: string]: string } = {
 		'ignore-case': 'Case-insensitive resolution',
 		'ignore-punctuation': 'Ignores punctuation during resolution',
-		'optional-tokens': 'Specifies tokens that are optional during matching'
+		'optional-tokens': 'Specifies tokens that are optional during resolution'
 	};
 	return docs[flag] || '';
 }
@@ -223,7 +227,7 @@ function addPatternSnippets(completions: vscode.CompletionItem[]) {
 
 function getRuleNames(document: vscode.TextDocument): string[] {
 	const ruleNames: string[] = [];
-	const ruleRegex = /^([a-zA-Z_][a-zA-Z0-9_.]*)\s*=/gm;
+	const ruleRegex = /^([a-zA-Z0-9_.]+)\s*=/gm;
 	
 	for (let i = 0; i < document.lineCount; i++) {
 		const line = document.lineAt(i).text;

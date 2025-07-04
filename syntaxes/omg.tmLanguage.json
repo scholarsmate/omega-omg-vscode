@@ -120,11 +120,11 @@
             "patterns": [
                 {
                     "name": "entity.name.function.resolver.omg",
-                    "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b(?=\\s*\\()"
+                    "match": "\\b[a-zA-Z0-9_]+\\b(?=\\s*\\()"
                 },
                 {
                     "name": "entity.name.function.resolver.omg",
-                    "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b(?!\\s*[=(])"
+                    "match": "\\b[a-zA-Z0-9_]+\\b(?!\\s*[=(])"
                 }
             ]
         },
@@ -148,7 +148,7 @@
             "patterns": [
                 {
                     "name": "meta.rule.omg",
-                    "begin": "\\b([a-zA-Z_][a-zA-Z0-9_.]*)\\s*(=)",
+                    "begin": "\\b([a-zA-Z0-9_.]+)\\s*(=)",
                     "end": "$|(?=\\n\\s*[a-zA-Z_])",
                     "beginCaptures": {
                         "1": {
@@ -293,7 +293,7 @@
             "patterns": [
                 {
                     "name": "meta.named-capture.omg",
-                    "begin": "\\(\\?P<([a-zA-Z_][a-zA-Z0-9_]*)>",
+                    "begin": "\\(\\?P<([a-zA-Z0-9_]+)>",
                     "end": "\\)",
                     "beginCaptures": {
                         "0": {
@@ -320,7 +320,7 @@
             "patterns": [
                 {
                     "name": "meta.list-match.omg",
-                    "begin": "\\[\\[\\s*([a-zA-Z_][a-zA-Z0-9_.]*)\\s*",
+                    "begin": "\\[\\[\\s*([a-zA-Z0-9_.]+)\\s*",
                     "end": "\\]\\]",
                     "beginCaptures": {
                         "0": {
@@ -351,7 +351,7 @@
             "patterns": [
                 {
                     "name": "meta.filter.omg",
-                    "begin": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(",
+                    "begin": "\\b([a-zA-Z0-9_]+)\\s*\\(",
                     "end": "\\)",
                     "beginCaptures": {
                         "1": {
@@ -441,7 +441,7 @@
             "patterns": [
                 {
                     "name": "variable.other.identifier.omg",
-                    "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\.?[a-zA-Z0-9_]*\\b"
+                    "match": "\\b[a-zA-Z0-9_]+\\.?[a-zA-Z0-9_]*\\b"
                 }
             ]
         }

@@ -1,6 +1,9 @@
 # OMG Language Support
 
+![OMG Language Support Screenshot](images/OMG-VSCode.png)
+
 A Visual Studio Code extension that provides syntax highlighting and language support for OMG (Object Matching Grammar) files.
+
 
 ## Features
 
