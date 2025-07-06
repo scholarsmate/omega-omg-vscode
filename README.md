@@ -8,14 +8,31 @@ A Visual Studio Code extension that provides syntax highlighting and language su
 ## Features
 
 - **Syntax Highlighting**: Full syntax highlighting for OMG language files (`.omg`)
-- **Code Completion**: Intelligent autocomplete for:
-  - **Import flags**: `word-boundary`, `word-prefix`, `word-suffix`, `ignore-case`, `ignore-punctuation`, `elide-whitespace`
+- **Advanced Parser**: Built-in AST-based parser with Lark grammar support
+- **Real-time Diagnostics**: Immediate error detection and validation
+- **Intelligent Code Completion**: Context-aware autocomplete for:
+  - **Import flags**: `word-boundary`, `word-prefix`, `word-suffix`, `ignore-case`, `ignore-punctuation`, `elide-whitespace`, `line-start`, `line-end`
   - **Keywords**: `version`, `import`, `as`, `with`, `resolver`, `default`, `uses`
   - **Escape sequences**: `\d`, `\D`, `\s`, `\S`, `\w`, `\W`, `\b`, `\B`
   - **Rule references**: Autocomplete for defined rules in `[[...]]` syntax
+  - **Resolver methods**: `exact`, `fuzzy`, `phonetic`, `semantic`, `regex`, `custom`
   - **Pattern snippets**: Pre-built patterns for common constructs
   - **Resolver flags**: Flags for resolver configuration
-- **Hover Support**: Detailed documentation for import flags and keywords
+- **Enhanced Hover Support**: 
+  - **Context-aware hover**: Shows different information based on cursor position
+  - **AST-based detection**: More accurate than regex-based detection
+  - **Comprehensive coverage**: All OMG constructs supported
+- **Navigation Features**:
+  - **Go to Definition**: Jump to rule definitions from references
+  - **Find All References**: Find all usages of rules and identifiers
+  - **Cross-file navigation**: Navigate between rules and imports
+- **Error Detection**:
+  - **Syntax validation**: Real-time parsing error detection
+  - **Semantic validation**: Undefined rule reference detection
+  - **File validation**: Missing import and optional-tokens files with red error squiggles
+  - **OMG compliance**: Validates against OMG-specific rules (e.g., no unbounded quantifiers)
+  - **Problems panel**: All errors and warnings listed in VS Code's Problems panel
+  - **File existence validation**: Checks that imported files and optional-tokens files exist
 - **Language Features**: 
   - Comment highlighting (`#` comments)
   - String literal highlighting
@@ -473,6 +490,37 @@ If you encounter bugs or have feature requests, please file an issue with:
 - Named captures (`(?P<name>pattern)`)
 - Character classes and escape sequences
 - Quantifiers and grouping constructs
+
+## File Validation
+
+The extension provides real-time validation of file references in OMG files with visual error indicators:
+
+### Import File Validation
+- Validates that files referenced in `import` statements exist
+- Shows **red error squiggles** for missing files relative to the `.omg` file directory
+- Example: `import "data.txt"` will show red squiggles if `data.txt` doesn't exist
+
+### Optional-Tokens File Validation
+- Validates files referenced in `optional-tokens()` clauses
+- Shows **red error squiggles** for missing files with precise location information
+- Supports multiple files: `optional-tokens("file1.txt", "file2.txt")`
+
+### Visual Indicators
+- **Red error squiggles**: Missing files are underlined with red wavy lines
+- **Problems panel**: All missing files listed in VS Code's Problems panel
+- **Hover tooltips**: Shows file existence status (✅ exists / ⚠️ missing)
+- **Error codes**: Each missing file has a specific diagnostic code
+
+### Test Files
+Check the `examples/` directory for test files:
+- `error_squiggles_test.omg` - Demonstrates red error squiggles
+- `duplicate_error_test.omg` - Verifies no duplicate errors appear
+- `file_validation_test.omg` - Missing file references
+- `file_validation_mixed.omg` - Mixed valid/invalid references
+- `valid_import.txt` - Valid import file
+- `optional_tokens.txt` - Valid optional-tokens file
+
+See [FILE_VALIDATION.md](FILE_VALIDATION.md) for detailed documentation.
 
 ---
 
