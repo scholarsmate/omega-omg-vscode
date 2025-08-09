@@ -1,117 +1,105 @@
-# OMG Language Support
+# OmegaOMG Language Support
 
-![OMG Language Support Screenshot](images/OMG-VSCode.png)
+![OmegaOMG Language Support Screenshot](images/OMG-VSCode.png)
 
-A Visual Studio Code extension that provides syntax highlighting and language support for OMG (Object Matching Grammar) files.
+A Visual Studio Code extension that provides syntax highlighting, completion, navigation, hover help, and validation for OmegaOMG (Object Matching Grammar) `.omg` files.
 
 
 ## Features
 
-- **Syntax Highlighting**: Full syntax highlighting for OMG language files (`.omg`)
-- **Advanced Parser**: Built-in AST-based parser with Lark grammar support
-- **Real-time Diagnostics**: Immediate error detection and validation
-- **Intelligent Code Completion**: Context-aware autocomplete for:
-  - **Import flags**: `word-boundary`, `word-prefix`, `word-suffix`, `ignore-case`, `ignore-punctuation`, `elide-whitespace`, `line-start`, `line-end`
-  - **Keywords**: `version`, `import`, `as`, `with`, `resolver`, `default`, `uses`
-  - **Escape sequences**: `\d`, `\D`, `\s`, `\S`, `\w`, `\W`, `\b`, `\B`
-  - **Rule references**: Autocomplete for defined rules in `[[...]]` syntax
-  - **Resolver methods**: `exact`, `fuzzy`, `phonetic`, `semantic`, `regex`, `custom`
-  - **Pattern snippets**: Pre-built patterns for common constructs
-  - **Resolver flags**: Flags for resolver configuration
-- **Enhanced Hover Support**: 
-  - **Context-aware hover**: Shows different information based on cursor position
-  - **AST-based detection**: More accurate than regex-based detection
-  - **Comprehensive coverage**: All OMG constructs supported
-- **Navigation Features**:
-  - **Go to Definition**: Jump to rule definitions from references
-  - **Find All References**: Find all usages of rules and identifiers
-  - **Cross-file navigation**: Navigate between rules and imports
-- **Error Detection**:
-  - **Syntax validation**: Real-time parsing error detection
-  - **Semantic validation**: Undefined rule reference detection
-  - **File validation**: Missing import and optional-tokens files with red error squiggles
-  - **OMG compliance**: Validates against OMG-specific rules (e.g., no unbounded quantifiers)
-  - **Problems panel**: All errors and warnings listed in VS Code's Problems panel
-  - **File existence validation**: Checks that imported files and optional-tokens files exist
-- **Language Features**: 
-  - Comment highlighting (`#` comments)
-  - String literal highlighting
-  - Pattern matching syntax
-  - Rule definitions
-  - Named captures and groups
-  - Quantifiers and ranges
-  - Character classes and escapes
+Implemented (current codebase):
+
+- Syntax Highlighting (TextMate grammar `syntaxes/omg.tmLanguage.json`)
+- AST-backed Parser (custom lightweight parser inspired by a Lark grammar design)
+- Real-time Diagnostics:
+   - Syntax errors from the parser
+   - Undefined rule references
+   - Disallowed/unbounded quantifiers (`+`, `*`, `{n,}`) flagged
+   - Missing import file / optional-tokens file existence checks
+- Intelligent Completion (context + general):
+   - Import flags: `word-boundary`, `word-prefix`, `word-suffix`, `ignore-case`, `ignore-punctuation`, `elide-whitespace`, `line-start`, `line-end`
+   - Keywords: `version`, `import`, `as`, `with`, `resolver`, `default`, `uses`
+   - Escape sequences: `\\d`, `\\D`, `\\s`, `\\S`, `\\w`, `\\W`, `\\b`, `\\B`
+   - Resolver methods: `exact`, `fuzzy`, `phonetic`, `semantic`, `regex`, `custom`
+   - Rule name references (from parsed definitions)
+   - Imported list aliases
+   - Quantifier helpers (`?`, `{n}`, `{n,m}`)
+- Hover Information (dual AST + regex fallback) for:
+   - Keywords, import flags, resolver flags & methods
+   - Named captures, list matches `[[name]]`, filters, character classes, escapes, quantifiers, anchors
+   - String literals with file existence status in context
+- Navigation (single-file scope):
+   - Go to Definition (rule definitions)
+   - Find All References (rule / identifier occurrences in same document)
+- File Reference Validation:
+   - `import "file" as alias` path existence
+   - `optional-tokens("file1", "file2")` existence
+
+Not yet implemented (future work opportunities):
+
+- Cross-file navigation / multi-file reference resolution
+- Pattern snippet contributions (no snippets are contributed presently)
+- Configuration settings (`contributes.configuration`) for enabling/disabling specific validations
+- Marketplace publishing automation docs / CI workflow docs
 
 ## Language Elements Supported
 
 - Version declarations (`version 1.0`)
-- Import statements with flags (`import "file.txt" as name with word-prefix, word-suffix`)
-- Rule definitions (`rule_name = pattern`)
-- Resolver statements (`resolver default uses method`)
-- Pattern expressions with quantifiers, groups, and alternatives
-- List matches (`[[list_name]]`) with optional filters
-- Named captures (`(?P<name>pattern)`)
-- Character classes (`[a-zA-Z]`)
-- Anchors (`^` and `$`)
-- Escape sequences (`\d`, `\w`, `\s`, etc.)
+- Import statements with optional flags (`import "file.txt" as alias with ignore-case, word-prefix`)
+- Rule definitions (`rule_name = pattern` with optional trailing `uses ...` clause)
+- Resolver default: `resolver default uses exact` (plus flags via `with` inside rule-level uses)
+- Pattern expressions: alternation (`|`), concatenation, grouping `(...)`
+- Quantifiers: `?`, `{n}`, `{n,m}` (bounded only)
+- List matches: `[[list_name]]` with optional filter `[[list_name:filter("arg")]]`
+- Named captures: `(?P<name>...)`
+- Character classes `[a-zA-Z0-9]` with ranges & escapes
+- Anchors: `^`, `$`
+- Escape sequences: `\d`, `\D`, `\s`, `\S`, `\w`, `\W`, `\b`, `\B`
 
 ## Requirements
 
 - Visual Studio Code 1.100.0 or higher
 
-## Installation
+## Installation (Local Dev)
 
-1. Clone or download this extension
-2. Open the extension folder in VS Code
-3. Press `F5` to launch a new Extension Development Host window
-4. Open a `.omg` file to see syntax highlighting in action
+1. Clone the repository
+2. Open folder in VS Code
+3. Run `npm install`
+4. Press `F5` (debug) to launch an Extension Development Host
+5. Open a `.omg` file
 
 ## Quick Start for Developers
 
-**Build and install locally:**
-```bash
-# Install dependencies
+**Build & install locally:**
+```
 npm install
-
-# Build the extension
-npm run build
-
-# Install for testing
-npm run install-local
+npm run build            # compile + package (.vsix)
+npm run install-local    # install generated VSIX into your VS Code
 ```
 
-**Test with example files:**
-```bash
-# Open example OMG files to test syntax highlighting
-code examples/sample.omg
-code examples/completion-test.omg
-```
+**Example files (open to test):** `examples/sample.omg`, `examples/completion-test.omg`, `examples/test.omg`
 
 **Development workflow:**
-```bash
-# Watch mode for continuous development
-npm run watch
-
-# Clean build artifacts
-npm run clean
-
-# Prepare for release
-npm run release
+```
+npm run watch            # incremental rebuilds
+npm run compile          # one-off compile (webpack)
+npm run clean            # remove build output
+npm run release          # clean + build + reminder for publish
 ```
 
 All build operations use npm scripts for cross-platform compatibility.
 
 ## Usage
 
-Create a file with the `.omg` extension and start writing OMG patterns. The extension will automatically provide syntax highlighting and code completion. Check the [`examples/`](examples/) directory for sample OMG files demonstrating various language features.
+Create a `.omg` file and start writing patterns. Completions & hovers appear automatically. See the `examples/` directory for concise samples.
 
-### Code Completion Features:
+### Code Completion Triggers
 
-1. **Import Flag Completion**: Type `with ` after an import statement and press `Ctrl+Space`
-2. **Keyword Completion**: Start typing at the beginning of a line and press `Ctrl+Space`
-3. **Escape Sequence Completion**: Type `\` and press `Ctrl+Space`
-4. **Rule Reference Completion**: Type `[[` and press `Ctrl+Space` to see available rules
-5. **Pattern Snippets**: Type `rule_name = ` and press `Ctrl+Space` for pattern templates
+1. Import flags: after `with ` in an import
+2. Keywords: anywhere (parser-driven context helps relevance)
+3. Escape sequences: type `\` then request suggestions
+4. Rule references: inside expressions suggestions include existing rule names
+5. List aliases: inside `[[ ]]` contexts (type `[[` then request suggestions)
 
 Example (see [`examples/sample.omg`](examples/sample.omg) for more):
 ```omg
@@ -123,11 +111,7 @@ import "locations.txt" as places with word-boundary
 person_pattern = [[names]] " lives in " [[places]]
 ```
 
-### Completion Triggers:
-- **Space** - After keywords like `with`, `uses`
-- **Comma** - For multiple flags/parameters
-- **Backslash** - For escape sequences
-- **Opening bracket** - For rule references (`[[`)
+Additional trigger characters registered: `. " [ ( { \\`
 
 ## Developer Instructions
 
@@ -135,17 +119,17 @@ person_pattern = [[names]] " lives in " [[places]]
 
 ### Prerequisites
 
-Before building the extension, ensure you have the following installed:
-- **Node.js** (v16 or higher) - [Download here](https://nodejs.org/)
-- **npm** package manager (included with Node.js)
-- **Visual Studio Code** - [Download here](https://code.visualstudio.com/)
+Install:
+- Node.js (v16+)
+- npm (bundled with Node.js)
+- Visual Studio Code
 
 ### Setting Up the Development Environment
 
-1. **Clone or download the repository:**
-   ```bash
-   git clone <repository-url>
-   cd omg_syntax
+1. **Clone the repository:**
+   ```
+   git clone https://github.com/scholarsmate/omega-omg-vscode
+   cd omega-omg-vscode
    ```
 
 2. **Install dependencies:**
@@ -153,8 +137,8 @@ Before building the extension, ensure you have the following installed:
    npm install
    ```
 
-3. **Install the Visual Studio Code Extension Manager (vsce) globally:**
-   ```bash
+3. (Optional) Install VSCE globally if you plan to publish:
+   ```
    npm install -g @vscode/vsce
    ```
 
@@ -178,27 +162,13 @@ npm run build
 npm run clean
 ```
 
-#### Manual step-by-step build
+#### Manual (alternative) build steps
 
-1. **Clean previous builds:**
-   ```bash
-   rm -rf out *.vsix
-   ```
-
-2. **Compile TypeScript:**
-   ```bash
-   npx tsc -p ./
-   ```
-
-3. **Bundle with webpack** (for optimized builds):
-   ```bash
-   npx webpack --mode production
-   ```
-
-4. **Package the extension:**
-   ```bash
-   npx vsce package
-   ```
+```
+rimraf dist *.vsix        # or manually delete
+npm run compile           # webpack build -> dist/
+npm run vsix              # produce VSIX
+```
 
 ### Development Workflow
 
@@ -212,14 +182,17 @@ npm run clean
    - Press `Ctrl+Shift+P` → "Tasks: Run Task" → "Build OMG Extension"
    - Or use the keyboard shortcut `Ctrl+Shift+B`
 
-4. **Available npm scripts:**
-   ```bash
-   npm run compile      # Compile TypeScript with webpack
-   npm run watch        # Watch mode for continuous compilation
-   npm run build        # Full build (compile + package)
-   npm run test         # Run tests with linting
-   npm run clean        # Clean build artifacts
-   npm run release      # Prepare release package
+4. **Available npm scripts:** (see `package.json` for complete list)
+   ```
+   npm run compile       # webpack build
+   npm run watch         # webpack --watch
+   npm run build         # compile + vsix
+   npm run vsix          # package only
+   npm run test          # run tests (vscode-test)
+   npm run lint          # eslint src
+   npm run clean         # remove build artifacts
+   npm run release       # clean + build + message
+   npm run install-local # install built VSIX
    ```
 
 5. **Version management:**
@@ -229,137 +202,59 @@ npm run clean
    npm run version:major    # Increment major version
    ```
 
-6. **Publishing:**
-   ```bash
-   npm run publish:patch    # Version bump + publish (patch)
-   npm run publish:minor    # Version bump + publish (minor)
-   npm run publish:major    # Version bump + publish (major)
+6. **Publishing (manual)** – requires publisher setup:
+   ```
+   npm run publish:patch | publish:minor | publish:major
    ```
 
 ### Installing the Built Extension
 
-After building, you'll have a `.vsix` file (e.g., `omg-language-support-0.0.1.vsix`).
+Generated file: `omegaomg-language-support-<version>.vsix` (exact name depends on final `name` & version).
 
-#### Via Command Line:
-```bash
+Command line:
+```
 code --install-extension omg-language-support-0.0.1.vsix
 ```
 
-#### Via VS Code UI:
-1. Open VS Code
-2. Go to Extensions view (`Ctrl+Shift+X`)
-3. Click the "..." menu in the Extensions view
-4. Select "Install from VSIX..."
-5. Choose your `.vsix` file
+VS Code UI:
+1. Extensions View (`Ctrl+Shift+X`)
+2. Ellipsis menu → Install from VSIX…
+3. Select the `.vsix`
 
-### Version Management and Publishing
+### Versioning & Publishing Summary
 
-The extension includes comprehensive version management and publishing tools:
-
-#### Quick Version Updates:
-```bash
-# Update version numbers
-npm run version:patch    # 0.0.1 → 0.0.2 (bug fixes)
-npm run version:minor    # 0.1.0 → 0.2.0 (new features)
-npm run version:major    # 1.0.0 → 2.0.0 (breaking changes)
+Scripts provided:
+```
+npm run version:patch | version:minor | version:major  # bump w/out git tag
+npm run publish:patch | publish:minor | publish:major  # bump + test + package + publish
+npm run publish                                      # publish current version
 ```
 
-#### One-Command Publishing:
-```bash
-# Update version and publish in one step
-npm run publish:patch    # Increment patch version and publish
-npm run publish:minor    # Increment minor version and publish  
-npm run publish:major    # Increment major version and publish
-```
+First-time publish: create a publisher, get a token, `vsce login <publisher>` then run a publish script.
 
-#### Publishing with npm scripts:
+### CI / Automation
 
-```bash
-# Check status and prepare release
-npm run release
-
-# Publish with version increment
-npm run publish:patch    # Bug fixes
-npm run publish:minor    # New features  
-npm run publish:major    # Breaking changes
-
-# Manual version control
-npm run version:patch    # Just bump version
-npm run publish          # Publish current version
-```
-
-#### Publishing Setup (First Time Only):
-
-1. **Create Publisher Account:**
-   - Visit [VS Code Marketplace](https://marketplace.visualstudio.com/manage)
-   - Create a publisher account
-
-2. **Get Personal Access Token:**
-   - Go to [Azure DevOps](https://dev.azure.com/)
-   - Create a Personal Access Token with Marketplace permissions
-
-3. **Login with vsce:**
-   ```bash
-   npm run publish
-   # or
-   vsce login <publisher-name>
-   ```
-
-4. **Update Publisher in package.json:**
-   ```json
-   {
-     "publisher": "your-publisher-name"
-   }
-   ```
-
-#### Publishing Workflow:
-
-The npm publishing scripts automatically:
-- ✅ **Run linting** and tests
-- ✅ **Update version** number in package.json
-- ✅ **Build optimized package** with webpack
-- ✅ **Create .vsix file**
-- ✅ **Publish to marketplace**
-- ✅ **Provide marketplace link**
-
-### Automated Publishing with GitHub Actions
-
-This repository includes comprehensive GitHub Actions workflows for automated CI/CD:
-
-- **🚀 Automatic releases** when version tags are pushed
-- **📦 VS Code Marketplace publishing** with proper authentication  
-- **🧪 Pre-release versions** for testing (alpha/beta/rc)
-- **🔍 Continuous integration** with linting and testing
-- **🛡️ Security scanning** and dependency monitoring
-
-**Quick Release:**
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-# Automatically creates GitHub release AND publishes to marketplace
-```
-
-See [`.github/ACTIONS_SETUP.md`](.github/ACTIONS_SETUP.md) for detailed setup instructions and workflow documentation.
+No CI workflows are included in this repository yet. (Future enhancement: add GitHub Actions for test + package + publish on tagged releases.)
 
 ### Project Structure
 
 ```
-omg_syntax/
+omega-omg-vscode/
 ├── src/
-│   ├── extension.ts              # Main extension logic with completion providers
-│   └── test/
-│       └── extension.test.ts     # Unit tests
-├── scripts/
-│   └── install-local.js          # Local installation helper
-├── syntaxes/
-│   └── omg.tmLanguage.json      # TextMate grammar for syntax highlighting
-├── language-configuration.json   # Language configuration (brackets, comments)
-├── package.json                 # Extension manifest and dependencies
-├── tsconfig.json                # TypeScript configuration
-├── webpack.config.js            # Webpack bundling configuration
-├── DEVELOPER.md                 # Detailed developer documentation
-├── *.omg                        # Test files for development
-└── README.md                    # This file
+│   ├── extension.ts              # Activation & provider registration
+│   ├── omg-language-service.ts   # Parser-driven language features
+│   ├── omg-parser.ts             # Custom parser building AST
+│   ├── omg-constants.ts          # Keywords, flags, docs
+│   └── test/extension.test.ts    # Basic tests
+├── examples/                     # Sample .omg files
+├── syntaxes/omg.tmLanguage.json # TextMate grammar
+├── language-configuration.json   # Comments/brackets config
+├── scripts/clean.js              # Clean build artifacts
+├── scripts/install-local.js      # Install built vsix helper
+├── scripts/version-sync.js       # Version sync utility
+├── webpack.config.js             # Bundle config
+├── package.json                  # Extension manifest
+└── README.md
 ```
 
 ### Debugging the Extension
@@ -413,14 +308,7 @@ omg_syntax/
   - Try clearing npm cache: `npm cache clean --force`
   - Reinstall dependencies: `Remove-Item node_modules -Recurse -Force && npm install`
 
-**Verifying the Build:**
-
-After building, verify the `.vsix` file contains:
-- Compiled JavaScript files in `out/` directory
-- Grammar files in `syntaxes/` directory
-- `package.json` with correct metadata
-- Language configuration files
-- All necessary assets
+**Verifying the Build:** Ensure the `.vsix` includes `dist/extension.js` (webpack output), grammar + language configuration, and assets referenced in `package.json`.
 
 ### Performance Considerations
 
@@ -431,25 +319,15 @@ After building, verify the `.vsix` file contains:
 
 ## Extension Settings
 
-This extension does not currently contribute any VS Code settings through `contributes.configuration`. All functionality works out of the box with default configurations.
+No custom settings contributed yet. Standard editor settings (e.g. `editor.suggestOnTriggerCharacters`, `editor.hover.enabled`) apply globally.
 
-**Default Behaviors:**
-- Syntax highlighting is automatically enabled for `.omg` files
-- Code completion triggers on space, comma, backslash, and bracket characters
-- Hover documentation appears when hovering over import flags and keywords
-- File associations are automatically configured for `.omg` extension
+## Known Issues / Limitations
 
-If you need to customize the extension behavior, you can modify the standard VS Code editor settings that affect all language extensions:
-
-- `editor.quickSuggestions` - Controls when quick suggestions show
-- `editor.suggestOnTriggerCharacters` - Enable/disable completion triggers
-- `editor.hover.enabled` - Enable/disable hover information
-
-## Known Issues
-
-- **Import file validation**: The extension does not validate that imported files exist or contain valid content.
-- **Syntax error detection**: Real-time syntax error detection and reporting is not implemented.
-- **Symbol navigation**: Go-to-definition and find-all-references for rules are not yet available.
+- Navigation is single-file only (no cross-file rule resolution)
+- No snippet contributions (despite earlier roadmap ideas)
+- No configuration options (`contributes.configuration` not defined)
+- No CI automation (manual publishing only)
+- Activation events list is empty; consider adding `onLanguage:omg` for lazy activation
 
 **Reporting Issues:**
 If you encounter bugs or have feature requests, please file an issue with:
@@ -493,34 +371,17 @@ If you encounter bugs or have feature requests, please file an issue with:
 
 ## File Validation
 
-The extension provides real-time validation of file references in OMG files with visual error indicators:
+Real-time diagnostics add errors for:
+- Missing import target files
+- Missing `optional-tokens()` files
+- Undefined rule references
+- Disallowed quantifiers (`+`, `*`, `{n,}`)
 
-### Import File Validation
-- Validates that files referenced in `import` statements exist
-- Shows **red error squiggles** for missing files relative to the `.omg` file directory
-- Example: `import "data.txt"` will show red squiggles if `data.txt` doesn't exist
+Indicators:
+- Red squiggles & Problems panel entries
+- Hover displays ✅ exists / ⚠️ missing for referenced files
 
-### Optional-Tokens File Validation
-- Validates files referenced in `optional-tokens()` clauses
-- Shows **red error squiggles** for missing files with precise location information
-- Supports multiple files: `optional-tokens("file1.txt", "file2.txt")`
-
-### Visual Indicators
-- **Red error squiggles**: Missing files are underlined with red wavy lines
-- **Problems panel**: All missing files listed in VS Code's Problems panel
-- **Hover tooltips**: Shows file existence status (✅ exists / ⚠️ missing)
-- **Error codes**: Each missing file has a specific diagnostic code
-
-### Test Files
-Check the `examples/` directory for test files:
-- `error_squiggles_test.omg` - Demonstrates red error squiggles
-- `duplicate_error_test.omg` - Verifies no duplicate errors appear
-- `file_validation_test.omg` - Missing file references
-- `file_validation_mixed.omg` - Mixed valid/invalid references
-- `valid_import.txt` - Valid import file
-- `optional_tokens.txt` - Valid optional-tokens file
-
-See [FILE_VALIDATION.md](FILE_VALIDATION.md) for detailed documentation.
+Try editing paths in `examples/sample.omg` to see validation behavior.
 
 ---
 
